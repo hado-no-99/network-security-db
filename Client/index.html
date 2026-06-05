@@ -1,10 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Network Security DBMS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security DBMS | Enterprise Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e9eef3 100%); color: #1a1f36; }
+        .navbar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding: 1rem 2rem; position: sticky; top: 0; z-index: 100; }
+        .navbar-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { font-size: 0.75rem; color: #6b7280; }
+        .nav-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .nav-btn { background: transparent; border: none; padding: 0.6rem 1.2rem; border-radius: 12px; font-weight: 500; cursor: pointer; color: #4b5563; transition: all 0.2s; }
+        .nav-btn:hover { background: #f3f4f6; color: #667eea; }
+        .nav-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.25rem; border-radius: 20px; cursor: pointer; transition: all 0.3s; border: 1px solid rgba(0,0,0,0.05); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #667eea; }
+        .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .chart-card { background: white; border-radius: 20px; padding: 1.25rem; cursor: pointer; transition: all 0.3s; }
+        .chart-card:hover { transform: scale(1.01); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .chart-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.75rem; }
+        .chart-header i { font-size: 1.25rem; color: #667eea; }
+        canvas { max-height: 250px; width: 100% !important; }
+        .data-section { background: white; border-radius: 24px; padding: 1.5rem; margin-top: 1.5rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        th { background: #f9fafb; font-weight: 600; color: #6b7280; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .badge-Critical, .badge-critical { background: #fee2e2; color: #dc2626; }
+        .badge-High, .badge-high { background: #ffedd5; color: #f97316; }
+        .badge-Medium, .badge-medium { background: #fef3c7; color: #eab308; }
+        .badge-Low, .badge-low { background: #d1fae5; color: #10b981; }
+        .badge-Active { background: #dbeafe; color: #3b82f6; }
+        .badge-Open { background: #fee2e2; color: #dc2626; }
+        .badge-Resolved { background: #d1fae5; color: #10b981; }
+        .resolve-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; }
+        .loading { text-align: center; padding: 3rem; color: #9ca3af; }
+        .footer { text-align: center; padding: 2rem; color: #9ca3af; font-size: 0.75rem; }
+        @media (max-width: 768px) { .container { padding: 1rem; } .charts-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
-    <h1>Network Security Management System</h1>
-    <p>Setup in progress. API is running!</p>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo"><h1>🛡️ NetSec DBMS</h1><p>Enterprise Security Platform | 15 Tables</p></div>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showSection('dashboard')">📊 Dashboard</button>
+                <button class="nav-btn" onclick="showSection('devices')">🖥️ Devices</button>
+                <button class="nav-btn" onclick="showSection('logs')">📜 Logs</button>
+                <button class="nav-btn" onclick="showSection('alerts')">⚠️ Alerts</button>
+                <button class="nav-btn" onclick="showSection('patches')">🔧 Patches</button>
+                <button class="nav-btn" onclick="showSection('vulnerabilities')">🐛 Vulns</button>
+                <div class="dropdown" style="position:relative; display:inline-block;">
+                    <button class="nav-btn" onclick="toggleDropdown()">📋 More Tables ▼</button>
+                    <div id="dropdownMenu" style="display:none; position:absolute; background:white; min-width:180px; border-radius:12px; box-shadow:0 8px 16px rgba(0,0,0,0.1); z-index:100;">
+                        <a onclick="showSection('manufacturers')" style="display:block; padding:10px 16px; cursor:pointer;">🏭 Manufacturers</a>
+                        <a onclick="showSection('configurations')" style="display:block; padding:10px 16px; cursor:pointer;">⚙️ Configurations</a>
+                        <a onclick="showSection('incidents')" style="display:block; padding:10px 16px; cursor:pointer;">🚨 Incidents</a>
+                        <a onclick="showSection('compliance')" style="display:block; padding:10px 16px; cursor:pointer;">✅ Compliance</a>
+                        <a onclick="showSection('maintenance')" style="display:block; padding:10px 16px; cursor:pointer;">🔨 Maintenance</a>
+                        <a onclick="showSection('audit')" style="display:block; padding:10px 16px; cursor:pointer;">📋 Audit</a>
+                        <a onclick="showSection('zones')" style="display:block; padding:10px 16px; cursor:pointer;">🌐 Zones</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="dashboardSection">
+            <div id="statsGrid" class="stats-grid">Loading stats...</div>
+            <div class="charts-grid">
+                <div class="chart-card" onclick="showSection('logs')"><div class="chart-header"><h3>📊 Security Events by Severity</h3></div><canvas id="severityChart"></canvas></div>
+                <div class="chart-card" onclick="showSection('devices')"><div class="chart-header"><h3>🖥️ Device Type Distribution</h3></div><canvas id="deviceTypeChart"></canvas></div>
+                <div class="chart-card" onclick="showSection('patches')"><div class="chart-header"><h3>📦 Patch Status</h3></div><canvas id="patchChart"></canvas></div>
+                <div class="chart-card" onclick="showSection('alerts')"><div class="chart-header"><h3>⚠️ Alert Resolution Status</h3></div><canvas id="alertChart"></canvas></div>
+                <div class="chart-card" onclick="showSection('logs')"><div class="chart-header"><h3>📈 Security Trend (Last 7 Days)</h3></div><canvas id="trendChart"></canvas></div>
+                <div class="chart-card" onclick="showSection('devices')"><div class="chart-header"><h3>🎯 Top 5 Most Active Devices</h3></div><canvas id="topDevicesChart"></canvas></div>
+            </div>
+        </div>
+        <div id="dataSection"></div>
+        <div class="footer">© 2026 Network Security DBMS | 15 Fully Normalized Tables | PostgreSQL on Neon</div>
+    </div>
+
+    <script>
+        let charts = {};
+        let allDevices = [], allLogs = [], allAlerts = [], allPatches = [];
+
+        function toggleDropdown() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function fetchAPI(endpoint) {
+            try {
+                const res = await fetch('/api' + endpoint);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                return await res.json();
+            } catch(e) { console.error('API Error:', endpoint, e); return null; }
+        }
+
+        async function loadStats() {
+            const stats = await fetchAPI('/dashboard/stats');
+            if (stats) {
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card" onclick="showSection('devices')"><div class="stat-value">${stats.total_devices || 0}</div><div class="stat-label">Total Devices</div></div>
+                    <div class="stat-card" onclick="showSection('devices')"><div class="stat-value">${stats.active_devices || 0}</div><div class="stat-label">Active Devices</div></div>
+                    <div class="stat-card" onclick="showSection('logs')"><div class="stat-value">${stats.critical_logs || 0}</div><div class="stat-label">Critical Logs</div></div>
+                    <div class="stat-card" onclick="showSection('alerts')"><div class="stat-value">${stats.open_alerts || 0}</div><div class="stat-label">Open Alerts</div></div>
+                    <div class="stat-card" onclick="showSection('patches')"><div class="stat-value">${stats.pending_patches || 0}</div><div class="stat-label">Pending Patches</div></div>
+                    <div class="stat-card" onclick="showSection('vulnerabilities')"><div class="stat-value">${stats.critical_vulnerabilities || 0}</div><div class="stat-label">Critical Vulns</div></div>
+                `;
+            }
+        }
+
+        async function showSection(section) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event?.target?.classList?.add('active');
+            document.getElementById('dropdownMenu').style.display = 'none';
+            
+            document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+            if (section === 'dashboard') { loadStats(); loadAllCharts(); return; }
+            
+            const dataDiv = document.getElementById('dataSection');
+            dataDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            let data = null;
+            if (section === 'devices') data = await fetchAPI('/devices');
+            else if (section === 'logs') data = await fetchAPI('/logs?limit=100');
+            else if (section === 'alerts') data = await fetchAPI('/alerts');
+            else if (section === 'patches') data = await fetchAPI('/patches');
+            else if (section === 'vulnerabilities') data = await fetchAPI('/vulnerabilities');
+            else if (section === 'manufacturers') data = await fetchAPI('/manufacturers');
+            else if (section === 'configurations') data = await fetchAPI('/configurations');
+            else if (section === 'incidents') data = await fetchAPI('/incidents');
+            else if (section === 'compliance') data = await fetchAPI('/compliance');
+            else if (section === 'maintenance') data = await fetchAPI('/maintenance');
+            else if (section === 'audit') data = await fetchAPI('/audit');
+            else if (section === 'zones') data = await fetchAPI('/zones');
+            
+            if (data && data.length > 0) {
+                const headers = Object.keys(data[0]);
+                dataDiv.innerHTML = `<div class="data-section"><div class="section-header"><h2>${section.toUpperCase()} (${data.length} records)</h2></div><div class="table-wrapper"><table><thead><tr>${headers.map(h => '<th>' + h.replace(/_/g, ' ').toUpperCase() + '</th>').join('')}</tr></thead><tbody>${data.map(row => '<tr>' + headers.map(h => '<td>' + (row[h] !== null ? String(row[h]).substring(0, 50) : '-') + '</td>').join('') + '</tr>').join('')}</tbody></table></div></div>`;
+            } else {
+                dataDiv.innerHTML = '<div class="data-section"><div class="loading">No data found</div></div>';
+            }
+        }
+
+        async function loadAllCharts() {
+            const severity = await fetchAPI('/logs/summary/severity');
+            const deviceType = await fetchAPI('/dashboard/device-types');
+            const patch = await fetchAPI('/dashboard/patch-status');
+            const alert = await fetchAPI('/dashboard/alert-status');
+            const trend = await fetchAPI('/dashboard/security-trend');
+            const topDevices = await fetchAPI('/dashboard/top-devices');
+            
+            if (charts.severity && severity) {
+                charts.severity.data.labels = severity.map(d => d.severity);
+                charts.severity.data.datasets[0].data = severity.map(d => d.count);
+                charts.severity.update();
+            }
+            if (charts.deviceType && deviceType) {
+                charts.deviceType.data.labels = deviceType.map(d => d.device_type);
+                charts.deviceType.data.datasets[0].data = deviceType.map(d => d.count);
+                charts.deviceType.update();
+            }
+            if (charts.patch && patch) {
+                charts.patch.data.labels = patch.map(d => d.status);
+                charts.patch.data.datasets[0].data = patch.map(d => d.count);
+                charts.patch.update();
+            }
+            if (charts.alert && alert) {
+                charts.alert.data.labels = alert.map(d => d.resolved_status);
+                charts.alert.data.datasets[0].data = alert.map(d => d.count);
+                charts.alert.update();
+            }
+            if (charts.trend && trend) {
+                const sorted = [...trend].reverse();
+                charts.trend.data.labels = sorted.map(d => d.date);
+                charts.trend.data.datasets[0].data = sorted.map(d => d.critical);
+                charts.trend.data.datasets[1].data = sorted.map(d => d.high);
+                charts.trend.update();
+            }
+            if (charts.topDevices && topDevices) {
+                charts.topDevices.data.labels = topDevices.map(d => d.device_name);
+                charts.topDevices.data.datasets[0].data = topDevices.map(d => d.log_count);
+                charts.topDevices.update();
+            }
+        }
+
+        function initCharts() {
+            charts.severity = new Chart(document.getElementById('severityChart'), { type: 'bar', data: { labels: [], datasets: [{ label: 'Count', data: [], backgroundColor: '#667eea' }] } });
+            charts.deviceType = new Chart(document.getElementById('deviceTypeChart'), { type: 'pie', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#667eea', '#764ba2', '#f59e0b', '#10b981'] }] } });
+            charts.patch = new Chart(document.getElementById('patchChart'), { type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] } });
+            charts.alert = new Chart(document.getElementById('alertChart'), { type: 'bar', data: { labels: [], datasets: [{ label: 'Count', data: [], backgroundColor: '#764ba2' }] } });
+            charts.trend = new Chart(document.getElementById('trendChart'), { type: 'line', data: { labels: [], datasets: [{ label: 'Critical', data: [], borderColor: '#ef4444', tension: 0.3 }, { label: 'High', data: [], borderColor: '#f97316', tension: 0.3 }] } });
+            charts.topDevices = new Chart(document.getElementById('topDevicesChart'), { type: 'bar', data: { labels: [], datasets: [{ label: 'Log Count', data: [], backgroundColor: '#667eea' }] } });
+        }
+
+        initCharts();
+        showSection('dashboard');
+        setInterval(() => { if (document.getElementById('dashboardSection').style.display !== 'none') { loadStats(); loadAllCharts(); } }, 30000);
+    </script>
 </body>
 </html>
