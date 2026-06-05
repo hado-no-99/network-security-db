@@ -1,0 +1,9 @@
+{
+  "name": "network-security-api",
+  "version": "1.0.0",
+  "description": "Network Security DBMS API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
